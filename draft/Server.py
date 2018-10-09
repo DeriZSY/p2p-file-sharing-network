@@ -1,10 +1,14 @@
+from pathlib import Path
 import socket
 import audit
 import sys
 
+
 class Server():
 
-    def __init__(self, server_ip, server_port):
+    def __init__(self, file_dir, server_ip, server_port):
+        self.file_dir = Path(file_dir)
+
         self.server_ip = server_ip
         self.server_port = server_port
 
@@ -40,4 +44,4 @@ class Server():
 
 
 if __name__ == "__main__":
-    s = Server(sys.argv[1], int(sys.argv[2]))
+    s = Server(sys.argv[1], sys.argv[2], int(sys.argv[3]))
