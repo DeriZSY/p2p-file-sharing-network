@@ -32,5 +32,14 @@ class Peer():
         client_sock.connect(recipient_addr)
 
         c2c = PeerHandleThread(self.audit, self, client_sock, recipient_addr, message_type)
+        c2c.start()
+
+    def request_file(self, recipient_addr):
+        message_type = Protocol.req_file_string()
+
+        client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_sock.connect(recipient_addr)
+
+        c2c = PeerHandleThread(self.audit, self, client_sock, recipient_addr, message_type)
 
         c2c.start()

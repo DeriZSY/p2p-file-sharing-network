@@ -14,15 +14,16 @@ class PeerCLI():
         self.recieving_addr = self.config_addrs[recieving_addr_key]
 
         self.peer = Peer(self.audit, self.listening_addr)
-        self.send_message_prompt()
+        self.do_something()
 
-    def send_message_prompt(self):
+    def do_something(self):
         time.sleep(1/100)
-        
-        send_ping = sys.argv[4]
 
-        if send_ping == "y":
-            self.peer.send_ping(self.recieving_addr)
+        to_do_or_not_to_do = sys.argv[4]
+
+        if to_do_or_not_to_do == "y":
+            # self.peer.send_ping(self.recieving_addr)
+            self.peer.request_file(self.recieving_addr)
 
 
     def parse_config_file(self, config_file_path):

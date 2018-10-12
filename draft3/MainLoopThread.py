@@ -28,8 +28,6 @@ class MainLoopThread(Thread):
             self.recieve_data(new_conn_sock, new_conn_addr)
 
 
-
-
     def recieve_data(self, new_conn_sock, new_conn_addr):
         while (1):
             data = new_conn_sock.recv(32)
@@ -43,4 +41,12 @@ class MainLoopThread(Thread):
 
             if data == Protocol.ping_to_string():
                 pt = PeerHandleThread(self.audit, self.parent_client, new_conn_sock, new_conn_addr, Protocol.pong_to_string())
+                pt.start()
+
+            print("are we here?")
+            print("data: " + data)
+            print("Protocol req file: " + str(Protocol.req_file_string()))
+            if data == Protocol.req_file_string():
+                print("I got a req file request")
+                pt = PeerHandleThread(self.audit, self.parent_client, new_conn_sock, new_conn_addr, Protocol.send_file_string())
                 pt.start()
