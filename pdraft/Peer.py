@@ -5,6 +5,8 @@ import sys
 import re
 import time, datetime
 
+## Peer.py adapted from cs.berry.edu's btpeer.py
+
 def debugOut( message ):
 """ Prints a messsage to the screen with the name of the current thread """
 print "[%s] %s" % ( str(threading.currentThread().getName()), msg )
