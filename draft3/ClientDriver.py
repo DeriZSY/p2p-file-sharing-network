@@ -1,29 +1,34 @@
+from Audit import Audit
 from Client import Client
 import sys
 import re
+import time
 
 
 class ClientDriver():
     def __init__(self, config_file_path, listening_addr_key):
+        self.audit = Audit()
+
         self.config_addrs = self.parse_config_file(config_file_path)
         self.listening_addr = self.config_addrs[listening_addr_key]
 
-        self.client = Client(self.listening_addr)
+        self.client = Client(self.audit, self.listening_addr)
         self.send_message_prompt()
 
     def send_message_prompt(self):
-        print("SEND A MESSAGE")
-
+        self.audit.io_lock.acquire()
+        print("Send a message")
         invalid_addr = True
         while (invalid_addr):
 
             print("recipient_addr_key: ")
             recipient_addr_key = input()
-            
+
             if (recipient_addr_key in self.config_addrs):
                 invalid_addr = False
 
                 self.client.send_message(self.config_addrs[recipient_addr_key])
+                self.audit.io_lock.release()
             else:
                 print("please enter a valid address key")
 

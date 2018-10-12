@@ -1,12 +1,11 @@
 # TODO: add a line of code that will give the new threads to the calling parents
-
-import Audit
 import socket
 from threading import Thread
 
 class ClientIngressThread(Thread):
-    def __init__(self, parent_client, listening_addr):
+    def __init__(self, audit, parent_client, listening_addr):
         Thread.__init__(self)
+        self.audit = audit
 
         self.parent_client = parent_client
 
@@ -19,7 +18,7 @@ class ClientIngressThread(Thread):
 
     def run(self):
         self.listening_socket.listen()
-        Audit.ingress_listening(self.listening_addr)
+        self.audit.ingress_listening(self.listening_addr)
 
         while (1):
             new_conn_sock, new_conn_addr = self.listening_socket.accept()
@@ -32,7 +31,7 @@ class ClientIngressThread(Thread):
             data = new_conn_sock.recv(32)
 
             if not data:
-                Audit.connection_closed(self.listening_addr, new_conn_addr)
+                self.audit.connection_closed(self.listening_addr, new_conn_addr)
                 break
 
-            Audit.data_recieved(self.listening_addr, new_conn_addr, data)
+            self.audit.data_recieved(self.listening_addr, new_conn_addr, data)
