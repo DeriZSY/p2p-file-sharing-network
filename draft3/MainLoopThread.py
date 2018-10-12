@@ -2,7 +2,7 @@
 import socket
 from threading import Thread
 
-class ClientIngressThread(Thread):
+class MainLoopThread(Thread):
     def __init__(self, audit, parent_client, listening_addr):
         Thread.__init__(self)
         self.audit = audit
@@ -22,6 +22,7 @@ class ClientIngressThread(Thread):
 
         while (1):
             new_conn_sock, new_conn_addr = self.listening_socket.accept()
+            PeerHandleThread(self, new_conn_sock)
             self.recieve_data(new_conn_sock, new_conn_addr)
 
 

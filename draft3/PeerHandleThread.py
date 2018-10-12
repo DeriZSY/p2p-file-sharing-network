@@ -2,13 +2,13 @@
 from threading import Thread
 import socket
 
-class ClientToClientThread(Thread):
-    def __init__(self, audit, recipient_addr):
+class PeerHandleThread(Thread):
+    def __init__(self, audit, parent_client, client_sock, recipient_addr):
         Thread.__init__(self)
         self.audit = audit
 
+        self.client_sock = client_sock
         self.recipient_addr = recipient_addr
-        self.client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def run(self):
         print("message to send: ")
