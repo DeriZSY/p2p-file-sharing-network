@@ -105,3 +105,32 @@ class Peer:
         socket.bind("", port)
         socket.listen(5)
     return socket
+
+    def sendToPeer(self, peerID, messageType, messageData, waitReply=True):
+        if self.router:
+            nextPeerID, host, port = self.router(peerID)
+
+        if not self.router or not nextPeerID:
+            self.__debug("Unable to route %s to %s" (messageType, PeerID))
+
+        def connectAndSend(self, host, port, messageType, messageData, peerID = None, waitReply = True):
+            messageList = []
+            try:
+                peerConnection = PeerConnection(peerID, host, port, debug = self.debug)
+                peerConnection.senddata(messageType, messageData)
+                self.__debug("Sent %s: %s" % (PeerID, messageType))
+
+                if waitreply:
+                    atomicReply = peerConnection.recvdata()
+                    while(atomicReply != (None, None)):
+                        messageList.append(atomicReply)
+                        self.__debug ('Got reply %s: %s' % (peerID, str(messageList)))
+                        atomicReply = peerConnection.recvdata()
+                    peerConnection.close()
+                except KeyboardInterrupt:
+                    raise
+                except:
+                    ## TODO: Figure out that traceback thing.
+                    if self.debug:
+                        pass
+                return messageList
