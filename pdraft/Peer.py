@@ -1,5 +1,6 @@
 from socket import socket, SOCK_DGRAM, SOCK_STREAM, timeout, AF_INET
 from threading import Thread
+from PeerConnection import PeerConnection
 import sys
 import re
 import time, datetime
@@ -10,7 +11,7 @@ print "[%s] %s" % ( str(threading.currentThread().getName()), msg )
 
 
 class Peer:
-"""Implements the basic functionality of a P2P network"""
+"""Implements the basic functionality of a P2P network, attempting a decentralized architecture"""
 
     def __debug(self, message):
         if self.debug:
@@ -43,12 +44,38 @@ class Peer:
         self.debug = 0
         self.shutdown = False
 
-    def __handlepeer(self, clientSock):
+
+    def main():
+        socket = self.makeSocketInstance(self.serverPort)
+        socket.settimeout(2)
+        #this line can totally make everything break
+        self.__debug('Server started:' + str(self.myId) + " " + str(self.serverHost) +":" + str(self.serverPort))
+
+        while (self.shutdown == False):
+            try:
+                self.__debug("Listening for connections...")
+                clientSock, clientAddr = socket.accept()
+                clientsock.settimeout(None)
+
+            clientThread = threading.Thread( target = self.handlePeer, args = [ clientSock ])
+            clientThread.start()
+
+        except KeyboardInterrupt:
+            self.shutdown = True
+            continue
+        except:
+            #TODO: Some debug stuff i can't understand rn.
+            pass
+
+            self.__debug("Main loop terminating")
+        socket.close()
+
+    def handlePeer(self, clientSock):
         #TODO: What on earth is clientSock.getpeername
         self.__debug("Connected " + str(clientSock.getpeername()))
 
         host, port = clientsock.getpeername()
-        peerConnection = BTPeerConnection(none, host, port, clientSock, debug=False)
+        peerConnection = PeerConnection(none, host, port, clientSock, debug=False)
 
         try:
             messageType, messageData = peerConnection.recvdata()
@@ -68,8 +95,8 @@ class Peer:
         except:
             #TODO: some traceback debug message
 
-        self.__debug ('Disconnecting ' + str(clientSock.getpeername()))
-        peerConnection.close()    
+            self.__debug ('Disconnecting ' + str(clientSock.getpeername()))
+            peerConnection.close()
 
     def makeSocketInstance(self, port):
         '''Makes a socket that can be reused when the OS closes the current thread'''
@@ -77,29 +104,4 @@ class Peer:
         socket.setsockopt(socket.SQL_SOCKET, SOCKET.SO_REUSEADDR, 1)
         socket.bind("", port)
         socket.listen(5)
-        return socket
-
-    def main():
-        socket = self.makeSocketInstance(self.serverPort)
-        socket.settimeout(2)
-        #this line can totally make everything break
-        self.__debug('Server started:' + str(self.myId) + " " + str(self.serverHost) +":" + str(self.serverPort))
-
-        while (self.shutdown == False):
-            try:
-                self.__debug("Listening for connections...")
-                clientSock, clientAddr = socket.accept()
-                clientsock.settimeout(None)
-
-            clientThread = threading.Thread( target = self.__handlepeer, args = [ clientSock ])
-            clientThread.start()
-
-        except KeyboardInterrupt:
-            self.shutdown = True
-            continue
-        except:
-            #TODO: Some debug stuff i can't understand rn.
-            pass
-
-        self.__debug("Main loop terminating")
-        socket.close()
+    return socket
