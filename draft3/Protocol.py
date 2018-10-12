@@ -1,17 +1,29 @@
 STR_LENGTH = 8
 INT_LENGTH = 8
 
+class Protocol():
+    @classmethod
+    def ping_to_bytes(self):
+        return self.str_to_fixed_width_string("ping").encode("UTF-8")
 
-def str_to_fixed_width_bytes(_str):
-    str_len = len(_str)
+    @classmethod
+    def ping_to_string(self):
+        return self.str_to_fixed_width_string("ping")
 
-    output_str = _str
-    for i in range(0, STR_LENGTH - str_len):
-        output_str += " "
+    @classmethod
+    def pong_to_bytes(self):
+        return self.str_to_fixed_width_string("pong").encode("UTF-8")
 
-    print(output_str + " " + str(len(output_str)))
+    @classmethod
+    def pong_to_string(self):
+        return self.str_to_fixed_width_string("pong")
 
+    @classmethod
+    def str_to_fixed_width_string(self, _str):
+        str_len = len(_str)
 
-def requst_file(file_name):
-    file_name_bytes = file_name.encode("UTF-8")
-    file_name_len_bytes = len(file_name_bytes).to_bytes(8, "big")
+        output_str = _str
+        for i in range(0, STR_LENGTH - str_len):
+            output_str += " "
+
+        return output_str

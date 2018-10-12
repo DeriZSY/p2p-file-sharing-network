@@ -23,24 +23,38 @@ class Audit():
         self.io_lock.release()
 
 
-    def data_recieved(self, host_addr, sending_addr, data):
+    def data_recieved(self, data):
         self.io_lock.acquire()
         print(self.bracket_text("data recieved"))
-        print("sent from: "+ str(sending_addr))
-        print("recieved by: "+ str(host_addr))
-        print("data: "+ data.decode("UTF-8"))
+
+        if (type(data) == str):
+            print("data recieved: " + data)
+        else:
+            print("data recieved: " + data.decode("UTF-8"))
+
         print()
         self.io_lock.release()
 
-    def sending_data(self, recipient_addr, data):
+    def sending_data(self, data):
         self.io_lock.acquire()
-        print(self.bracket_text("seding data"))
-        print("sent to: "+ str(recipient_addr))
-        print("data sent: " + data.decode("UTF-8"))
+        print(self.bracket_text("data sent"))
+
+        if (type(data) == str):
+            print("data sent: " + data)
+        else:
+            print("data sent: " + data.decode("UTF-8"))
+
         print()
         self.io_lock.release()
 
     def aprint(self, _str):
         self.io_lock.acquire()
         print(_str)
+        self.io_lock.release()
+
+    def new_connection(self, connection_addr):
+        self.io_lock.acquire()
+        print(self.bracket_text("new connection"))
+        print("connecting_addr: " + str(connection_addr))
+        print()
         self.io_lock.release()

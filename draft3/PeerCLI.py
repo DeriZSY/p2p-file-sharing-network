@@ -6,30 +6,23 @@ import time
 
 
 class PeerCLI():
-    def __init__(self, config_file_path, listening_addr_key):
+    def __init__(self, config_file_path, listening_addr_key, recieving_addr_key):
         self.audit = Audit()
 
         self.config_addrs = self.parse_config_file(config_file_path)
         self.listening_addr = self.config_addrs[listening_addr_key]
+        self.recieving_addr = self.config_addrs[recieving_addr_key]
 
-        self.client = Peer(self.audit, self.listening_addr)
+        self.peer = Peer(self.audit, self.listening_addr)
         self.send_message_prompt()
 
     def send_message_prompt(self):
-        print("Send a message")
-        invalid_addr = True
-        while (invalid_addr):
+        time.sleep(1/100)
+        
+        send_ping = sys.argv[4]
 
-            print("recipient_addr_key: ")
-            recipient_addr_key = input()
-
-            if (recipient_addr_key in self.config_addrs):
-                invalid_addr = False
-
-                self.client.send_message(self.config_addrs[recipient_addr_key])
-            else:
-                print("please enter a valid address key")
-
+        if send_ping == "y":
+            self.peer.send_ping(self.recieving_addr)
 
 
     def parse_config_file(self, config_file_path):
@@ -58,4 +51,4 @@ class PeerCLI():
 
 
 if __name__ == "__main__":
-    cd = PeerCLI(sys.argv[1], sys.argv[2])
+    cd = PeerCLI(sys.argv[1], sys.argv[2], sys.argv[3])
