@@ -1,5 +1,7 @@
 from Peer import debugOut
 
+## Peer.py adapted from cs.berry.edu's btpeer.py
+
 class PeerConnection:
 
     def __debug(self, message):
