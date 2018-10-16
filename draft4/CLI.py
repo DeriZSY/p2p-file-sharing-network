@@ -10,7 +10,6 @@ class CLI():
             self.handle_init_dir()
 
         elif sys.argv[1] == "start_network":
-            print("am I here?")
             self.handle_start_network()
 
         elif sys.argv[1] == "connect_to_network":
@@ -48,8 +47,8 @@ class CLI():
         if os.path.isdir(dir_path):
             listneing_addr = self.parse_config_file(os.path.join(dir_path, "addrs.config"))["0"]
 
-            c = Client(listneing_addr)
-            c.start_listening_thread()
+            self.client_obj = Client(listneing_addr)
+            self.client_obj.start_listening_thread()
 
         else:
             print("<<ERROR: invalid shared_dir provided>>")
@@ -66,9 +65,10 @@ class CLI():
             conn_addr = (conn_ip, int(conn_port_str))
             listneing_addr = self.parse_config_file(os.path.join(dir_path, "addrs.config"))["0"]
 
-            c = Client(listneing_addr)
-            c.start_listening_thread()
-            c.join_network(conn_addr)
+            self.client_obj = Client(listneing_addr)
+            self.client_obj.start_listening_thread()
+            
+            self.client_obj.join_network(conn_addr)
 
         else:
             print("<<ERROR: invalid shared_dir provided>>")

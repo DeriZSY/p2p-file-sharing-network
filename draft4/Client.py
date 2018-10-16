@@ -1,3 +1,4 @@
+from Protocol import Protocol
 from ClientConnectionThread import ClientConnectionThread
 from ListenThread import ListenThread
 import socket
@@ -15,7 +16,9 @@ class Client():
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect(connection_addr)
 
-        client_socket.sendall(b"JOIN____")
+        client_socket.sendall(Protocol.req_join_bytes())
+
         new_client_connection_thread = ClientConnectionThread(client_socket)
         new_client_connection_thread.start()
+
         self.connections.append(new_client_connection_thread)

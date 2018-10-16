@@ -1,3 +1,4 @@
+from Protocol import Protocol
 from threading import Thread
 import socket
 
@@ -14,5 +15,21 @@ class ClientConnectionThread(Thread):
                 print("The connection was closed")
                 break
 
+            data_str = data.decode("UTF-8")
+
             print("Data recieved")
-            print(data.decode("UTF-8"))
+            print(data_str)
+
+            if data_str == Protocol.req_join_string():
+                self.handle_join_network_request()
+
+            elif data_str == Protocol.ack_join_string():
+                self.handle_ack_join_network_request()
+
+
+
+    def handle_join_network_request(self):
+        self.client_connection.sendall(Protocol.ack_join_bytes())
+
+    def handle_ack_join_network_request(self):
+        print("woohoo i'm in the club now!")
