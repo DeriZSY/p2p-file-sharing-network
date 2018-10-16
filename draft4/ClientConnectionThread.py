@@ -20,7 +20,7 @@ class ClientConnectionThread(Thread):
             data = self.client_connection.recv(8)
 
             if not data:
-                print("The connection was closed")
+                self.audit.connection_closed(self.client_connection.getsockname(), self.client_connection.getpeername())
                 break
 
             data_str = data.decode("UTF-8")
@@ -46,7 +46,7 @@ class ClientConnectionThread(Thread):
                 self.handle_ack_file_request()
 
     def handle_join_network_request(self):
-        f = FileReader(self.shared_dir_path + "/addrs.config")
+        f = FileReader(self.shared_dir_path.joinpath(".addrs.config"))
         addrs_bytes = f.get_file_bytes()
 
         self.client_connection.sendall(Protocol.ack_join_bytes(addrs_bytes))
@@ -57,12 +57,12 @@ class ClientConnectionThread(Thread):
 
             file_bytes = self.client_connection.recv(byte_length)
 
-            with open(os.path.join(self.shared_dir_path + "/tmp"), 'wb') as temp_file:
+            with open(self.shared_dir_path.joinpath("tmp"), 'wb') as temp_file:
                 temp_file.write(file_bytes)
 
-            sender_addr = Protocol.parse_config_file(self.shared_dir_path + "/tmp")["0"]
+            sender_addr = Protocol.parse_config_file(self.shared_dir_path.joinpath("tmp"))["0"]
 
-            with open(os.path.join(self.shared_dir_path + "addrs.config"), 'ab') as addrs_file:
+            with open(self.shared_dir_path.joinpath(".addrs.config"), 'ab') as addrs_file:
                 addrs_file.write(str(uuid.uuid1()).encode("UTF-8"))
                 addrs_file.write(b": ")
                 addrs_file.write(sender_addr[0].encode("UTF-8"))
@@ -70,8 +70,8 @@ class ClientConnectionThread(Thread):
                 addrs_file.write(str(sender_addr[1]).encode("UTF-8"))
                 addrs_file.write(b"\n")
 
-            if os.path.isfile(self.shared_dir_path + "/tmp"):
-                os.remove(self.shared_dir_path + "/tmp")
+            if self.shared_dir_path.joinpath("tmp").is_file():
+                self.shared_dir_path.joinpath("tmp").unlink()
 
     def handle_list_request(self):
         file_list = DirectoryReader(self.shared_dir_path).list_file_names()
@@ -84,7 +84,10 @@ class ClientConnectionThread(Thread):
 
         # TODO: make an audit for this
         file_name_list = list_str.split("\n")
+        print()
+        print("Fille list collected from a peer:")
         print(file_name_list)
+        print()
 
     def handle_req_file_request(self):
         file_name_size_bytes = self.client_connection.recv(8)
@@ -93,7 +96,7 @@ class ClientConnectionThread(Thread):
         name_bytes = self.client_connection.recv(byte_length)
         name_str = name_bytes.decode("UTF-8")
 
-        file_bytes = FileReader(self.shared_dir_path + "/" + name_str).get_file_bytes()
+        file_bytes = FileReader(self.shared_dir_path.joinpath(name_str)).get_file_bytes()
         self.client_connection.sendall(Protocol.ack_file_bytes(name_str, file_bytes))
 
     def handle_ack_file_request(self):
@@ -108,5 +111,8 @@ class ClientConnectionThread(Thread):
 
         file_bytes = self.client_connection.recv(byte_length)
 
-        with open(os.path.join(self.shared_dir_path + "/" + name_str), 'wb') as temp_file:
+        self.audit.recieved_file(name_str)
+        with open(os.path.join(self.shared_dir_path.joinpath(name_str)), 'wb') as temp_file:
             temp_file.write(file_bytes)
+
+        self.audit.file_written(name_str)

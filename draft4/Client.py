@@ -33,7 +33,7 @@ class Client():
         self.connections.append(new_client_connection_thread)
 
     def list_files(self):
-        addrs_dict = Protocol.parse_config_file(self.shared_dir_path + "addrs.config")
+        addrs_dict = Protocol.parse_config_file(self.shared_dir_path.joinpath(".addrs.config"))
 
         for key, connection_addr in addrs_dict.items():
             if key != "0":
@@ -49,7 +49,7 @@ class Client():
                 self.connections.append(new_client_connection_thread)
 
     def request_file(self, filename):
-        addrs_dict = Protocol.parse_config_file(self.shared_dir_path + "addrs.config")
+        addrs_dict = Protocol.parse_config_file(self.shared_dir_path.joinpath(".addrs.config"))
 
         for key, connection_addr in addrs_dict.items():
             if key != "0":

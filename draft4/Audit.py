@@ -11,12 +11,12 @@ class Audit():
 
     def ingress_listening(self, listening_addr):
         # self.io_lock.acquire()
-        print(self.bracket_text("ingress listening"))
+        print(self.bracket_text("listening"))
         print("listening at: " + str(listening_addr))
         print()
         # self.io_lock.release()
 
-    def connection_closed(self, host_addr, closing_addr):
+    def connection_closed(self, host_addr=None, closing_addr=None):
         # self.io_lock.acquire()
         print(self.bracket_text("connection_closed"))
         print("connection to: " + str(host_addr))
@@ -36,6 +36,23 @@ class Audit():
 
         print()
         # self.io_lock.release()
+
+    def recieved_file(self, filename):
+        # self.io_lock.acquire()
+        print(self.bracket_text("data recieved"))
+
+        print("filename: " + filename)
+
+        print()
+
+    def file_written(self, filename):
+        # self.io_lock.acquire()
+        print(self.bracket_text("file written"))
+
+        print("filename: " + filename)
+
+        print()
+
 
     def sending_data(self, data):
         # self.io_lock.acquire()
