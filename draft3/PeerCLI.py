@@ -3,6 +3,7 @@ from Peer import Peer
 import sys
 import re
 import time
+import os
 
 
 class PeerCLI():
@@ -49,7 +50,51 @@ class PeerCLI():
             sys.exit(1)
 
 
-
-
 if __name__ == "__main__":
-    cd = PeerCLI(sys.argv[1], sys.argv[2], sys.argv[3])
+    # init shared_dir 127.0.0.1 9090
+    # inti shared_dir, listening_addr, port
+    # This code takes a dir path and adds in your listening addr and port as the first entry
+    if sys.argv[1] == "init_dir":
+        dir_path = sys.argv[2]
+
+        if os.path.isdir(dir_path):
+
+            # TODO: add check for writing in ip and port
+            listening_ip = sys.argv[3]
+            listening_port_str = sys.argv[4]
+
+            with open(os.path.join(dir_path, "addrs.config"), 'wb') as temp_file:
+                temp_file.write(b"0: ")
+                temp_file.write(listening_ip.encode("UTF-8"))
+                temp_file.write(b" ")
+                temp_file.write(listening_port_str.encode("UTF-8"))
+                temp_file.write(b"\n")
+
+        else:
+            print("Really? is it so hard to just give me a directory???")
+
+    # connect 127.0.01 9090
+    # ip and port to connect to
+    elif sys.argv[1] == "start":
+        dir_path = sys.argv[2]
+
+        if os.path.isdir(dir_path):
+
+            # TODO: add check for writing in ip and port
+            conn_ip = sys.argv[3]
+            listening_port_str = sys.argv[4]
+
+            with open(os.path.join(dir_path, "addrs.config"), 'wb') as temp_file:
+                temp_file.write(b"0: ")
+                temp_file.write(listening_ip.encode("UTF-8"))
+                temp_file.write(b" ")
+                temp_file.write(listening_port_str.encode("UTF-8"))
+                temp_file.write(b"\n")
+
+        else:
+            print("Really? is it so hard to just give me a directory???")
+
+
+
+
+    # # cd = PeerCLI(sys.argv[1], sys.argv[2], sys.argv[3])

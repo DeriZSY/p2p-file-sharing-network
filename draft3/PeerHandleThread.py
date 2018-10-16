@@ -29,7 +29,7 @@ class PeerHandleThread(Thread):
         elif self.message_type == Protocol.send_file_string():
             self.handle_send_file()
 
-    def handle_req_file(self):
+    def handle_req_file(self, recipient_addr):
         self.audit.sending_data(Protocol.req_file_bytes())
         self.client_sock.sendall(Protocol.req_file_bytes())
 
@@ -42,6 +42,7 @@ class PeerHandleThread(Thread):
 
             data = data.decode("UTF-8")
             self.audit.data_recieved(data)
+
 
     def handle_send_file(self):
         self.audit.sending_data(Protocol.send_file_bytes())
