@@ -3,6 +3,7 @@ from threading import Thread
 import socket
 
 class ClientConnectionThread(Thread):
+    """Utilizes TCP to initialize a thread for every peer connection in the network"""
     def __init__(self, client_connection):
         Thread.__init__(self)
         self.client_connection = client_connection
