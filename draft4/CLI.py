@@ -1,3 +1,5 @@
+from Client import Client
+
 import sys
 import os
 import re
@@ -8,10 +10,11 @@ class CLI():
             self.handle_init_dir()
 
         elif sys.argv[1] == "start_network":
+            print("am I here?")
             self.handle_start_network()
 
         elif sys.argv[1] == "connect_to_network":
-            self.handle_start_network()
+            self.handle_conn_network()
 
 
 
@@ -23,6 +26,9 @@ class CLI():
             # TODO: add check for writing in ip and port
             listening_ip = sys.argv[3]
             listening_port_str = sys.argv[4]
+
+            if os.path.isfile(os.path.join(dir_path, "addrs.config")):
+                os.remove(os.path.join(dir_path, "addrs.config"))
 
             with open(os.path.join(dir_path, "addrs.config"), 'wb') as temp_file:
                 temp_file.write(b"0: ")
@@ -36,24 +42,21 @@ class CLI():
 
 
     def handle_start_network(self):
+        # cli start_network shared_dir
         dir_path = sys.argv[2]
 
         if os.path.isdir(dir_path):
-            # conn_ip = sys.argv[3]
-            # conn_port_str = sys.argv[4]
-            #
-            # conn_addr = (conn_ip, int(conn_port_str))
-
             listneing_addr = self.parse_config_file(os.path.join(dir_path, "addrs.config"))["0"]
 
-            # print(str(conn_addr))
-            print(str(listneing_addr))
+            c = Client(listneing_addr)
+            c.start_listening_thread()
 
         else:
             print("<<ERROR: invalid shared_dir provided>>")
 
 
     def handle_conn_network(self):
+        #cli connenct_to_network shared_dir conn_ip, conn_port
         dir_path = sys.argv[2]
 
         if os.path.isdir(dir_path):
@@ -63,8 +66,9 @@ class CLI():
             conn_addr = (conn_ip, int(conn_port_str))
             listneing_addr = self.parse_config_file(os.path.join(dir_path, "addrs.config"))["0"]
 
-            print(str(conn_addr))
-            print(str(listneing_addr))
+            c = Client(listneing_addr)
+            c.start_listening_thread()
+            c.join_network(conn_addr)
 
         else:
             print("<<ERROR: invalid shared_dir provided>>")
