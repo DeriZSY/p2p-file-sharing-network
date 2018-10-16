@@ -1,3 +1,4 @@
+from Audit import Audit
 from Protocol import Protocol
 from ClientConnectionThread import ClientConnectionThread
 from ListenThread import ListenThread
@@ -10,6 +11,7 @@ class Client():
         self.shared_dir_path = shared_dir_path
         self.listening_addr = listening_addr
         self.connections = []
+        self.audit = Audit()
 
     def start_listening_thread(self):
     # """Initializes a thread for each of the connections that are added to the network"""
@@ -22,6 +24,7 @@ class Client():
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect(connection_addr)
 
+        self.audit.sending_data(Protocol.req_join_bytes())
         client_socket.sendall(Protocol.req_join_bytes())
 
         new_client_connection_thread = ClientConnectionThread(self.shared_dir_path, client_socket)
@@ -37,6 +40,7 @@ class Client():
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 client_socket.connect(connection_addr)
 
+                self.audit.sending_data(Protocol.req_list_bytes())
                 client_socket.sendall(Protocol.req_list_bytes())
 
                 new_client_connection_thread = ClientConnectionThread(self.shared_dir_path, client_socket)
@@ -52,6 +56,7 @@ class Client():
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 client_socket.connect(connection_addr)
 
+                self.audit.sending_data(Protocol.req_file_bytes(filename))
                 client_socket.sendall(Protocol.req_file_bytes(filename))
 
                 new_client_connection_thread = ClientConnectionThread(self.shared_dir_path, client_socket)

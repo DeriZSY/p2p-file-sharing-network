@@ -1,3 +1,4 @@
+from Audit import Audit
 from ClientConnectionThread import ClientConnectionThread
 
 import socket
@@ -13,14 +14,17 @@ class ListenThread(Thread):
 
         self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.listening_socket.bind(self.listening_addr)
+        self.audit = Audit()
 
 
     def run(self):
-        print("listening")
+        self.audit.ingress_listening(self.listening_addr)
         self.listening_socket.listen()
 
         while (1):
             connection_socket, connection_addr = self.listening_socket.accept()
+            self.audit.new_connection(connection_addr)
+
             new_client_connection_thread = ClientConnectionThread(self.shared_dir_path, connection_socket)
             new_client_connection_thread.start()
 

@@ -1,3 +1,4 @@
+from Audit import Audit
 import uuid
 from Utils import FileReader
 from Utils import DirectoryReader
@@ -12,6 +13,7 @@ class ClientConnectionThread(Thread):
         Thread.__init__(self)
         self.shared_dir_path = shared_dir_path
         self.client_connection = client_connection
+        self.audit = Audit()
 
     def run(self):
         while (1):
@@ -23,9 +25,7 @@ class ClientConnectionThread(Thread):
 
             data_str = data.decode("UTF-8")
 
-            print("Data recieved")
-            print(data_str)
-            print()
+            self.audit.data_recieved(data_str)
 
             if data_str == Protocol.req_join_string():
                 self.handle_join_network_request()
@@ -81,6 +81,8 @@ class ClientConnectionThread(Thread):
         list_size_bytes = self.client_connection.recv(8)
         list_bytes = self.client_connection.recv(Protocol.fixed_width_bytes_to_int(list_size_bytes))
         list_str = list_bytes.decode("UTF-8")
+
+        # TODO: make an audit for this
         file_name_list = list_str.split("\n")
         print(file_name_list)
 

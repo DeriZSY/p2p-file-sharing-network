@@ -22,14 +22,14 @@ class FileReader():
         return byteContent
 
     def hash_file(self):
-    #"""Utilizes hashing to protect the integrity of the files downloaded through our system"""
-    #Function taken from: https://stackoverflow.com/questions/22058048/hashing-a-file-in-python
-    hash = hashlib.sha256()
-    with open(self.filename, 'rb', buffering=0) as f:
-        for b in iter(lambda : f.read(128*1024), b''):
-            hash.update(b)
+        #"""Utilizes hashing to protect the integrity of the files downloaded through our system"""
+        #Function taken from: https://stackoverflow.com/questions/22058048/hashing-a-file-in-python
+        hash = hashlib.sha256()
+        with open(self.filename, 'rb', buffering=0) as f:
+            for b in iter(lambda : f.read(128*1024), b''):
+                hash.update(b)
 
-    return hash.hexdigest()
+        return hash.hexdigest()
 
     def partitionFile(self, chunkSize):
     #Not yet tested.
@@ -44,7 +44,7 @@ class FileReader():
 
         #Creates a file to track different partitions
         file = ("tracker.txt", "w")
-        file.write(self.filepath +','+'chunk,'+str(chunkNum)+','+str(chunkSize)))
+        file.write(self.filepath +','+'chunk,'+str(chunkNum)+','+str(chunkSize))
         file.close()
 
         chunkNames = []
