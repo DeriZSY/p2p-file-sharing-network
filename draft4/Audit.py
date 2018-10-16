@@ -48,9 +48,7 @@ class Audit():
     def file_written(self, filename):
         # self.io_lock.acquire()
         print(self.bracket_text("file written"))
-
         print("filename: " + filename)
-
         print()
 
 
@@ -77,3 +75,15 @@ class Audit():
         print("connecting_addr: " + str(connection_addr))
         print()
         # self.io_lock.release()
+
+    def no_addrs_found(self):
+        # self.io_lock.acquire()
+        print(self.bracket_text("parsing error"))
+        print("no addresses found when parsing address file")
+        print()
+        # self.io_lock.release()
+
+    def recieved_file_list(self, file_list):
+        print(self.bracket_text("file list from peer"))
+        print("files: " + str(file_list))
+        print()

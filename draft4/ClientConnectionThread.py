@@ -1,9 +1,9 @@
-from Audit import Audit
-import uuid
 from Utils import FileReader
+from Audit import Audit
 from Utils import DirectoryReader
 from Protocol import Protocol
 from threading import Thread
+import uuid
 import socket
 import os
 import re
@@ -13,6 +13,7 @@ class ClientConnectionThread(Thread):
     def __init__(self, shared_dir_path, client_connection):
         Thread.__init__(self)
         self.shared_dir_path = shared_dir_path
+        self.address_file = self.shared_dir_path.joinpath(".addrs.config")
         self.client_connection = client_connection
         self.audit = Audit()
 
@@ -46,109 +47,84 @@ class ClientConnectionThread(Thread):
             elif data_str == Protocol.ack_file_string():
                 self.handle_ack_file_request()
 
+
     def handle_join_network_request(self):
-        addr_byte_len_bytes = self.client_connection.recv(8)
-        addr_byte_len = Protocol.fixed_width_bytes_to_int(addr_byte_len_bytes)
+        addr_str = self.get_sized_payload().decode("utf-8")
+        new_ip, new_port = self.find_ip_and_port_addr(addr_str)
 
-        addr_bytes = self.client_connection.recv(addr_byte_len)
-        print("these are the incoming addr_bytes: " + addr_bytes.decode("utf-8"))
-        addr_str = addr_bytes.decode("utf-8")
-        print("this is the incoming addr_string: " + addr_str)
+        ack_join_bytes = Protocol.ack_join_bytes(self.address_file)
+        self.client_connection.sendall(ack_join_bytes)
 
-        regex = r'([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+).+([0-9]{4})'
-        matches = re.findall(regex, addr_str)
-        new_ip = matches[0][0]
-        new_port = int(matches[0][1])
+        self.add_to_addresses_file((new_ip, new_port))
 
-        print("This is the new ip from handle join in client connection:" + new_ip)
-        print("This is the new port from handle join in client connection:" + str(new_port))
-
-        f = FileReader(self.shared_dir_path.joinpath(".addrs.config"))
-        addrs_bytes = f.get_file_bytes()
-
-        self.client_connection.sendall(Protocol.ack_join_bytes(addrs_bytes))
-
-        with open(self.shared_dir_path.joinpath(".addrs.config"), 'ab') as addrs_file:
-            addrs_file.write(str(uuid.uuid1()).encode("UTF-8"))
-            addrs_file.write(b": ")
-            addrs_file.write(new_ip.encode("UTF-8"))
-            addrs_file.write(b" ")
-            addrs_file.write(str(new_port).encode("UTF-8"))
-            addrs_file.write(b"\n")
 
     def handle_ack_join_network_request(self):
-            file_size_bytes = self.client_connection.recv(8)
-            byte_length = Protocol.fixed_width_bytes_to_int(file_size_bytes)
+        # The loop needs to call join network for each of the other ones.
+        new_addr_file_bytes = self.get_sized_payload()
 
-            file_bytes = self.client_connection.recv(byte_length)
+        tmp_file_path = self.shared_dir_path.joinpath(".tmp")
+        open(tmp_file_path, 'wb').write(new_addr_file_bytes)
 
-            with open(self.shared_dir_path.joinpath("tmp"), 'wb') as temp_file:
-                temp_file.write(file_bytes)
+        new_addr_array = Protocol.parse_config_file_to_arr(tmp_file_path)
+        my_addr_array = Protocol.parse_config_file_to_arr(self.address_file)
 
-            sender_addr = Protocol.parse_config_file(self.shared_dir_path.joinpath("tmp"))["0"]
-            addr_dict = Protocol.parse_config_file(self.shared_dir_path.joinpath("tmp"))
+        for addr in new_addr_array:
+            if not addr in my_addr_array:
+                self.add_to_addresses_file(addr)
+                # TODO: add code here that will make new connections with these folk
 
-            with open(self.shared_dir_path.joinpath(".addrs.config"), 'ab') as addrs_file:
-                for key, addr in addr_dict.items():
-                    addrs_file.write(str(uuid.uuid1()).encode("UTF-8"))
-                    addrs_file.write(b": ")
-                    addrs_file.write(addr[0].encode("UTF-8"))
-                    addrs_file.write(b" ")
-                    addrs_file.write(str(addr[1]).encode("UTF-8"))
-                    addrs_file.write(b"\n")
-
-
-            with open(self.shared_dir_path.joinpath(".addrs.config"), 'ab') as addrs_file:
-                addrs_file.write(str(uuid.uuid1()).encode("UTF-8"))
-                addrs_file.write(b": ")
-                addrs_file.write(sender_addr[0].encode("UTF-8"))
-                addrs_file.write(b" ")
-                addrs_file.write(str(sender_addr[1]).encode("UTF-8"))
-                addrs_file.write(b"\n")
-
-            if self.shared_dir_path.joinpath("tmp").is_file():
-                self.shared_dir_path.joinpath("tmp").unlink()
+        if self.shared_dir_path.joinpath("tmp").is_file():
+            self.shared_dir_path.joinpath("tmp").unlink()
 
     def handle_list_request(self):
         file_list = DirectoryReader(self.shared_dir_path).list_file_names()
-        self.client_connection.sendall(Protocol.ack_list_bytes(file_list))
+        list_response_bytes = Protocol.ack_list_bytes(file_list)
+        self.client_connection.sendall(list_response_bytes)
 
     def handle_ack_list_request(self):
-        list_size_bytes = self.client_connection.recv(8)
-        list_bytes = self.client_connection.recv(Protocol.fixed_width_bytes_to_int(list_size_bytes))
-        list_str = list_bytes.decode("UTF-8")
-
-        # TODO: make an audit for this
+        list_str = self.get_sized_payload().decode("UTF-8")
         file_name_list = list_str.split("\n")
-        print()
-        print("Fille list collected from a peer:")
-        print(file_name_list)
-        print()
+        self.audit.recieved_file_list(file_name_list)
 
     def handle_req_file_request(self):
-        file_name_size_bytes = self.client_connection.recv(8)
-        byte_length = Protocol.fixed_width_bytes_to_int(file_name_size_bytes)
-
-        name_bytes = self.client_connection.recv(byte_length)
-        name_str = name_bytes.decode("UTF-8")
-
-        file_bytes = FileReader(self.shared_dir_path.joinpath(name_str)).get_file_bytes()
-        self.client_connection.sendall(Protocol.ack_file_bytes(name_str, file_bytes))
+        file_name_str = self.get_sized_payload().decode("UTF-8")
+        file_path = self.shared_dir_path.joinpath(file_name_str)
+        self.client_connection.sendall(Protocol.ack_file_bytes(file_path))
 
     def handle_ack_file_request(self):
-        file_name_size_bytes = self.client_connection.recv(8)
-        byte_length = Protocol.fixed_width_bytes_to_int(file_name_size_bytes)
-
-        name_bytes = self.client_connection.recv(byte_length)
-        name_str = name_bytes.decode("UTF-8")
-
-        file_size_bytes = self.client_connection.recv(8)
-        byte_length = Protocol.fixed_width_bytes_to_int(file_size_bytes)
-
-        file_bytes = self.client_connection.recv(byte_length)
+        name_str = self.get_sized_payload().decode("UTF-8")
+        file_bytes = self.get_sized_payload()
 
         self.audit.recieved_file(name_str)
+
         with open(os.path.join(self.shared_dir_path.joinpath(name_str)), 'wb') as temp_file:
             temp_file.write(file_bytes)
 
         self.audit.file_written(name_str)
+
+# ==================================================================================
+
+    def get_sized_payload(self):
+        byte_len_bytes = self.client_connection.recv(8)
+        byte_len = Protocol.fixed_width_bytes_to_int(byte_len_bytes)
+        bytes = self.client_connection.recv(byte_len)
+        return bytes
+
+    def find_ip_and_port_addr(self, _str):
+        regex = r'([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+).+([0-9]{4})'
+        matches = re.findall(regex, _str)
+        new_ip = matches[0][0]
+        new_port = int(matches[0][1])
+        return (new_ip, new_port)
+
+    def add_to_addresses_file(self, new_addr):
+        new_ip = new_addr[0]
+        new_port = new_addr[1]
+
+        with open(self.address_file, "ab") as addr_file:
+            self.write_ip_and_port_to_file(addr_file, new_ip, new_port)
+
+    def write_ip_and_port_to_file(self, open_file, new_ip, new_port):
+        open_file.write(str(uuid.uuid1()).encode("UTF-8") + b": ")
+        open_file.write(new_ip.encode("UTF-8") + b" ")
+        open_file.write(str(new_port).encode("UTF-8") + b"\n")

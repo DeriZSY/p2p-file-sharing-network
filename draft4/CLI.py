@@ -103,11 +103,20 @@ class CLI():
             sys.stdout.write('addr: ')
             sys.stdout.flush()
             usr_input = input()
-
+            lo_port_re = r"lo:(\d+)"
             ip_port_re = r"(\d+\.\d+\.\d+\.\d+):(\d+)"
 
+
+            lo_match = re.match(lo_port_re, usr_input)
             match = re.match(ip_port_re, usr_input)
-            if (not match):
+
+            if (lo_match):
+                listen_addr = ("127.0.0.1", int("900" + lo_match.group(1)))
+                is_valid_addr = True
+                print()
+                return listen_addr
+
+            elif (not match):
                 print("<<ERROR: not a valid addr in form ip:port>>")
 
             else:
