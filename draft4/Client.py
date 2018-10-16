@@ -2,6 +2,7 @@ from Protocol import Protocol
 from ClientConnectionThread import ClientConnectionThread
 from ListenThread import ListenThread
 import socket
+import os
 
 class Client():
     def __init__(self, shared_dir_path, listening_addr):
@@ -27,3 +28,18 @@ class Client():
         new_client_connection_thread.start()
 
         self.connections.append(new_client_connection_thread)
+
+    def list_files(self):
+        addrs_dict = Protocol.parse_config_file(self.shared_dir_path + "addrs.config")
+
+        for key, connection_addr in addrs_dict.items():
+            if key != "0":
+                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client_socket.connect(connection_addr)
+
+                client_socket.sendall(Protocol.req_list_bytes())
+
+                new_client_connection_thread = ClientConnectionThread(self.shared_dir_path, client_socket)
+                new_client_connection_thread.start()
+
+                self.connections.append(new_client_connection_thread)

@@ -33,11 +33,11 @@ class ClientConnectionThread(Thread):
             elif data_str == Protocol.ack_join_string():
                 self.handle_ack_join_network_request()
 
-            # if data_str == Protocol.req_join_string():
-            #     self.handle_join_network_request()
-            #
-            # elif data_str == Protocol.ack_join_string():
-            #     self.handle_ack_join_network_request()
+            if data_str == Protocol.req_list_string():
+                self.handle_list_request()
+
+            elif data_str == Protocol.ack_list_string():
+                self.handle_ack_list_request()
 
     def handle_join_network_request(self):
         f = FileReader(self.shared_dir_path + "/addrs.config")
@@ -66,3 +66,14 @@ class ClientConnectionThread(Thread):
 
             if os.path.isfile(self.shared_dir_path + "/tmp"):
                 os.remove(self.shared_dir_path + "/tmp")
+
+    def handle_list_request(self):
+        file_list = DirectoryReader(self.shared_dir_path).list_file_names()
+        self.client_connection.sendall(Protocol.ack_list_bytes(file_list))
+
+    def handle_ack_list_request(self):
+        list_size_bytes = self.client_connection.recv(8)
+        list_bytes = self.client_connection.recv(Protocol.fixed_width_bytes_to_int(list_size_bytes))
+        list_str = list_bytes.decode("UTF-8")
+        file_name_list = list_str.split("\n")
+        print(file_name_list)

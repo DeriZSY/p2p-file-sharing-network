@@ -20,6 +20,12 @@ class CLI():
         elif sys.argv[1] == "connect_to_network":
             self.handle_conn_network()
 
+        while (1):
+            next_command = input()
+
+            if next_command == "list":
+                self.client_obj.list_files()
+
 
 
     def handle_init_dir(self):
@@ -84,9 +90,6 @@ class CLI():
 
         else:
             print("<<ERROR: invalid shared_dir provided>>")
-
-
-
 
 if __name__ == "__main__":
     cl = CLI()

@@ -78,7 +78,7 @@ class Protocol():
 
             return self.ack_list_bytes() + self.int_to_fixed_width_bytes(file_list_byte_len) + file_list_bytes
 
-        return self.str_to_fixed_width_string("ackreq").encode("UTF-8")
+        return self.str_to_fixed_width_string("acklist").encode("UTF-8")
 
     # -----------------------------------------------------------------------------------------------
 
