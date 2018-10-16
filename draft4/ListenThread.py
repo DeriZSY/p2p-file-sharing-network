@@ -4,6 +4,7 @@ import socket
 from threading import Thread
 
 class ListenThread(Thread):
+    """Utilizes TCP to enable the nodes to initialize a listening module"""
     def __init__(self, parent_client, listening_addr):
         Thread.__init__(self)
         self.parent_client = parent_client
