@@ -1,13 +1,16 @@
+import uuid
 from Utils import FileReader
 from Utils import DirectoryReader
 from Protocol import Protocol
 from threading import Thread
 import socket
+import os
 
 class ClientConnectionThread(Thread):
-    """Utilizes TCP to initialize a thread for every peer connection in the network"""
-    def __init__(self, client_connection):
+    # """Utilizes TCP to initialize a thread for every peer connection in the network"""
+    def __init__(self, shared_dir_path, client_connection):
         Thread.__init__(self)
+        self.shared_dir_path = shared_dir_path
         self.client_connection = client_connection
 
     def run(self):
@@ -22,6 +25,7 @@ class ClientConnectionThread(Thread):
 
             print("Data recieved")
             print(data_str)
+            print()
 
             if data_str == Protocol.req_join_string():
                 self.handle_join_network_request()
@@ -29,11 +33,36 @@ class ClientConnectionThread(Thread):
             elif data_str == Protocol.ack_join_string():
                 self.handle_ack_join_network_request()
 
-
+            # if data_str == Protocol.req_join_string():
+            #     self.handle_join_network_request()
+            #
+            # elif data_str == Protocol.ack_join_string():
+            #     self.handle_ack_join_network_request()
 
     def handle_join_network_request(self):
-        addr_config_bytes =
-        self.client_connection.sendall(Protocol.ack_join_bytes())
+        f = FileReader(self.shared_dir_path + "/addrs.config")
+        addrs_bytes = f.get_file_bytes()
+
+        self.client_connection.sendall(Protocol.ack_join_bytes(addrs_bytes))
 
     def handle_ack_join_network_request(self):
-        print("woohoo i'm in the club now!")
+            file_size_bytes = self.client_connection.recv(8)
+            byte_length = Protocol.fixed_width_bytes_to_int(file_size_bytes)
+
+            file_bytes = self.client_connection.recv(byte_length)
+
+            with open(os.path.join(self.shared_dir_path + "/tmp"), 'wb') as temp_file:
+                temp_file.write(file_bytes)
+
+            sender_addr = Protocol.parse_config_file(self.shared_dir_path + "/tmp")["0"]
+
+            with open(os.path.join(self.shared_dir_path + "addrs.config"), 'ab') as addrs_file:
+                addrs_file.write(str(uuid.uuid1()).encode("UTF-8"))
+                addrs_file.write(b": ")
+                addrs_file.write(sender_addr[0].encode("UTF-8"))
+                addrs_file.write(b" ")
+                addrs_file.write(str(sender_addr[1]).encode("UTF-8"))
+                addrs_file.write(b"\n")
+
+            if os.path.isfile(self.shared_dir_path + "/tmp"):
+                os.remove(self.shared_dir_path + "/tmp")

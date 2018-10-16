@@ -1,3 +1,4 @@
+from Protocol import Protocol
 from Client import Client
 
 import sys
@@ -5,10 +6,10 @@ import os
 import re
 
 class CLI():
-"""
-Commmand Line Interfaceused to initalize a P2P network
-Currently implemented: Initialize, Start Network and Connect to Network
-"""
+# """
+# Commmand Line Interfaceused to initalize a P2P network
+# Currently implemented: Initialize, Start Network and Connect to Network
+# """
     def __init__(self):
         if sys.argv[1] == "init":
             self.handle_init_dir()
@@ -22,8 +23,8 @@ Currently implemented: Initialize, Start Network and Connect to Network
 
 
     def handle_init_dir(self):
-    """Handles the creation of a meta file that contains information regarding the nodes in
-    the network currently part of the P2P network"""
+    # """Handles the creation of a meta file that contains information regarding the nodes in
+    # the network currently part of the P2P network"""
         dir_path = sys.argv[2]
 
         if os.path.isdir(dir_path):
@@ -47,14 +48,14 @@ Currently implemented: Initialize, Start Network and Connect to Network
 
 
     def handle_start_network(self):
-    """Initializes a shared directory, enabling other peers to connect to a shared directory of files."""
+    # """Initializes a shared directory, enabling other peers to connect to a shared directory of files."""
         # cli start_network shared_dir
         dir_path = sys.argv[2]
 
         if os.path.isdir(dir_path):
-            listneing_addr = self.parse_config_file(os.path.join(dir_path, "addrs.config"))["0"]
+            listneing_addr = Protocol.parse_config_file(os.path.join(dir_path, "addrs.config"))["0"]
 
-            self.client_obj = Client(listneing_addr)
+            self.client_obj = Client(dir_path, listneing_addr)
             self.client_obj.start_listening_thread()
 
         else:
@@ -62,8 +63,8 @@ Currently implemented: Initialize, Start Network and Connect to Network
 
 
     def handle_conn_network(self):
-        """Connects two nodes in the network to eachother
-        @params: shared directory, connection ip and connection port"""
+        # """Connects two nodes in the network to eachother
+        # @params: shared directory, connection ip and connection port"""
         #cli connenct_to_network shared_dir conn_ip, conn_port
         dir_path = sys.argv[2]
 
@@ -72,41 +73,18 @@ Currently implemented: Initialize, Start Network and Connect to Network
             conn_port_str = sys.argv[4]
 
             conn_addr = (conn_ip, int(conn_port_str))
-            listneing_addr = self.parse_config_file(os.path.join(dir_path, "addrs.config"))["0"]
+            print("above cli")
+            listneing_addr = Protocol.parse_config_file(os.path.join(dir_path, "addrs.config"))["0"]
+            print("below cli")
 
-            self.client_obj = Client(listneing_addr)
+            self.client_obj = Client(dir_path, listneing_addr)
             self.client_obj.start_listening_thread()
-            
+
             self.client_obj.join_network(conn_addr)
 
         else:
             print("<<ERROR: invalid shared_dir provided>>")
 
-    def parse_config_file(self, config_file_path):
-        """ Gathers information from a network metafile, utilizes regex to verify a valid IP is given
-        then creates a dictionary that matches directories with the respective IP adresses."""
-        try:
-            config_file = open(config_file_path)
-            file_contents = config_file.read()
-            regex = r"(\d):\s+(\d+\.\d+\.\d+\.\d+)\s+(\d+)"
-
-            match = re.search(regex, file_contents)
-
-            if match:
-                matches = re.findall(regex, file_contents)
-                addrs = {a[0] : (a[1], int(a[2])) for a in matches}
-                return addrs
-
-            else:
-                print("<<ERROR: invalid config file format>>")
-                print("exiting...")
-                sys.exit(1)
-
-        except FileNotFoundError:
-            print("<<ERROR: no config file found>>")
-            print("please reinitialize your shared_dir")
-            print("exiting...")
-            sys.exit(1)
 
 
 
