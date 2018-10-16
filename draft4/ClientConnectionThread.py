@@ -61,6 +61,17 @@ class ClientConnectionThread(Thread):
                 temp_file.write(file_bytes)
 
             sender_addr = Protocol.parse_config_file(self.shared_dir_path.joinpath("tmp"))["0"]
+            addr_dict = Protocol.parse_config_file(self.shared_dir_path.joinpath("tmp"))
+
+            with open(self.shared_dir_path.joinpath(".addrs.config"), 'ab') as addrs_file:
+                for key, addr in addr_dict.items():
+                    addrs_file.write(str(uuid.uuid1()).encode("UTF-8"))
+                    addrs_file.write(b": ")
+                    addrs_file.write(addr[0].encode("UTF-8"))
+                    addrs_file.write(b" ")
+                    addrs_file.write(str(addr[1]).encode("UTF-8"))
+                    addrs_file.write(b"\n")
+
 
             with open(self.shared_dir_path.joinpath(".addrs.config"), 'ab') as addrs_file:
                 addrs_file.write(str(uuid.uuid1()).encode("UTF-8"))
