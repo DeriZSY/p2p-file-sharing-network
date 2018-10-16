@@ -53,7 +53,14 @@ class Protocol():
         return self.str_to_fixed_width_string("reqjoin")
 
     @classmethod
-    def req_join_bytes(self):
+    def req_join_bytes(self, listening_addr=None):
+        if (listening_addr):
+            addr_str = str(listening_addr)
+            addr_bytes = addr_str.encode("UTF-8")
+            addr_bytes_len = len(addr_bytes)
+            ret_bytes = self.req_join_bytes() + self.int_to_fixed_width_bytes(addr_bytes_len) + addr_bytes
+            print("Coming from request join: complete message: " + ret_bytes.decode("utf-8"))
+            return ret_bytes
         return self.str_to_fixed_width_string("reqjoin").encode("UTF-8")
 
     # -----------------------------------------------------------------------------------------------

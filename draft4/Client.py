@@ -25,7 +25,7 @@ class Client():
         client_socket.connect(connection_addr)
 
         self.audit.sending_data(Protocol.req_join_bytes())
-        client_socket.sendall(Protocol.req_join_bytes())
+        client_socket.sendall(Protocol.req_join_bytes(self.listening_addr))
 
         new_client_connection_thread = ClientConnectionThread(self.shared_dir_path, client_socket)
         new_client_connection_thread.start()

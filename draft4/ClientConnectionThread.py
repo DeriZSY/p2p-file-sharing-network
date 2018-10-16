@@ -6,6 +6,7 @@ from Protocol import Protocol
 from threading import Thread
 import socket
 import os
+import re
 
 class ClientConnectionThread(Thread):
     # """Utilizes TCP to initialize a thread for every peer connection in the network"""
@@ -46,10 +47,34 @@ class ClientConnectionThread(Thread):
                 self.handle_ack_file_request()
 
     def handle_join_network_request(self):
+        addr_byte_len_bytes = self.client_connection.recv(8)
+        addr_byte_len = Protocol.fixed_width_bytes_to_int(addr_byte_len_bytes)
+
+        addr_bytes = self.client_connection.recv(addr_byte_len)
+        print("these are the incoming addr_bytes: " + addr_bytes.decode("utf-8"))
+        addr_str = addr_bytes.decode("utf-8")
+        print("this is the incoming addr_string: " + addr_str)
+
+        regex = r'([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+).+([0-9]{4})'
+        matches = re.findall(regex, addr_str)
+        new_ip = matches[0][0]
+        new_port = int(matches[0][1])
+
+        print("This is the new ip from handle join in client connection:" + new_ip)
+        print("This is the new port from handle join in client connection:" + str(new_port))
+
         f = FileReader(self.shared_dir_path.joinpath(".addrs.config"))
         addrs_bytes = f.get_file_bytes()
 
         self.client_connection.sendall(Protocol.ack_join_bytes(addrs_bytes))
+
+        with open(self.shared_dir_path.joinpath(".addrs.config"), 'ab') as addrs_file:
+            addrs_file.write(str(uuid.uuid1()).encode("UTF-8"))
+            addrs_file.write(b": ")
+            addrs_file.write(new_ip.encode("UTF-8"))
+            addrs_file.write(b" ")
+            addrs_file.write(str(new_port).encode("UTF-8"))
+            addrs_file.write(b"\n")
 
     def handle_ack_join_network_request(self):
             file_size_bytes = self.client_connection.recv(8)
