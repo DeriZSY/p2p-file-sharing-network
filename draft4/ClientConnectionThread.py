@@ -33,11 +33,17 @@ class ClientConnectionThread(Thread):
             elif data_str == Protocol.ack_join_string():
                 self.handle_ack_join_network_request()
 
-            if data_str == Protocol.req_list_string():
+            elif data_str == Protocol.req_list_string():
                 self.handle_list_request()
 
             elif data_str == Protocol.ack_list_string():
                 self.handle_ack_list_request()
+
+            elif data_str == Protocol.req_file_string():
+                self.handle_req_file_request()
+
+            elif data_str == Protocol.ack_file_string():
+                self.handle_ack_file_request()
 
     def handle_join_network_request(self):
         f = FileReader(self.shared_dir_path + "/addrs.config")
@@ -77,3 +83,28 @@ class ClientConnectionThread(Thread):
         list_str = list_bytes.decode("UTF-8")
         file_name_list = list_str.split("\n")
         print(file_name_list)
+
+    def handle_req_file_request(self):
+        file_name_size_bytes = self.client_connection.recv(8)
+        byte_length = Protocol.fixed_width_bytes_to_int(file_name_size_bytes)
+
+        name_bytes = self.client_connection.recv(byte_length)
+        name_str = name_bytes.decode("UTF-8")
+
+        file_bytes = FileReader(self.shared_dir_path + "/" + name_str).get_file_bytes()
+        self.client_connection.sendall(Protocol.ack_file_bytes(name_str, file_bytes))
+
+    def handle_ack_file_request(self):
+        file_name_size_bytes = self.client_connection.recv(8)
+        byte_length = Protocol.fixed_width_bytes_to_int(file_name_size_bytes)
+
+        name_bytes = self.client_connection.recv(byte_length)
+        name_str = name_bytes.decode("UTF-8")
+
+        file_size_bytes = self.client_connection.recv(8)
+        byte_length = Protocol.fixed_width_bytes_to_int(file_size_bytes)
+
+        file_bytes = self.client_connection.recv(byte_length)
+
+        with open(os.path.join(self.shared_dir_path + "/" + name_str), 'wb') as temp_file:
+            temp_file.write(file_bytes)

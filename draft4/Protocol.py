@@ -25,6 +25,27 @@ class Protocol():
 
         return self.str_to_fixed_width_string("reqfile").encode("UTF-8")
 
+
+    # -----------------------------------------------------------------------------------------------
+
+    @classmethod
+    def ack_file_string(self):
+        return self.str_to_fixed_width_string("ackfile")
+
+    @classmethod
+    def ack_file_bytes(self, filename = None, file_bytes = None):
+        if (file_bytes and filename):
+            file_name_bytes = filename.encode("UTF-8")
+            filename_byte_len = len(file_name_bytes)
+            file_byte_len = len(file_bytes)
+
+            return_bytes = self.ack_file_bytes() + self.int_to_fixed_width_bytes(filename_byte_len)
+            return_bytes += file_name_bytes + self.int_to_fixed_width_bytes(file_byte_len) + file_bytes
+
+            return (return_bytes)
+
+        return self.str_to_fixed_width_string("ackfile").encode("UTF-8")
+
     # -----------------------------------------------------------------------------------------------
 
     @classmethod

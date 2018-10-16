@@ -43,3 +43,18 @@ class Client():
                 new_client_connection_thread.start()
 
                 self.connections.append(new_client_connection_thread)
+
+    def request_file(self, filename):
+        addrs_dict = Protocol.parse_config_file(self.shared_dir_path + "addrs.config")
+
+        for key, connection_addr in addrs_dict.items():
+            if key != "0":
+                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client_socket.connect(connection_addr)
+
+                client_socket.sendall(Protocol.req_file_bytes(filename))
+
+                new_client_connection_thread = ClientConnectionThread(self.shared_dir_path, client_socket)
+                new_client_connection_thread.start()
+
+                self.connections.append(new_client_connection_thread)

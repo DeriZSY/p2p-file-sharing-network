@@ -13,6 +13,7 @@ class CLI():
     def __init__(self):
         if sys.argv[1] == "init":
             self.handle_init_dir()
+            sys.exit(0)
 
         elif sys.argv[1] == "start_network":
             self.handle_start_network()
@@ -25,6 +26,11 @@ class CLI():
 
             if next_command == "list":
                 self.client_obj.list_files()
+
+            elif next_command[:3] == "req":
+                file_name = next_command[4:]
+                self.client_obj.request_file(file_name)
+
 
 
 
@@ -79,9 +85,7 @@ class CLI():
             conn_port_str = sys.argv[4]
 
             conn_addr = (conn_ip, int(conn_port_str))
-            print("above cli")
             listneing_addr = Protocol.parse_config_file(os.path.join(dir_path, "addrs.config"))["0"]
-            print("below cli")
 
             self.client_obj = Client(dir_path, listneing_addr)
             self.client_obj.start_listening_thread()
