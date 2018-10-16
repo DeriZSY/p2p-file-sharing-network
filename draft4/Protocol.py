@@ -25,11 +25,11 @@ class Protocol():
 
     @classmethod
     def req_join_string(self):
-        return self.str_to_fixed_width_string("req_join")
+        return self.str_to_fixed_width_string("reqjoin")
 
     @classmethod
     def req_join_bytes(self):
-        return self.str_to_fixed_width_string("req_join").encode("UTF-8")
+        return self.str_to_fixed_width_string("reqjoin").encode("UTF-8")
 
     # -----------------------------------------------------------------------------------------------
 

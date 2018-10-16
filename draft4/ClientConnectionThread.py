@@ -1,3 +1,5 @@
+from Utils import FileReader
+from Utils import DirectoryReader
 from Protocol import Protocol
 from threading import Thread
 import socket
@@ -30,6 +32,7 @@ class ClientConnectionThread(Thread):
 
 
     def handle_join_network_request(self):
+        addr_config_bytes =
         self.client_connection.sendall(Protocol.ack_join_bytes())
 
     def handle_ack_join_network_request(self):
