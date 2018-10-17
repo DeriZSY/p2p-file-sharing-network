@@ -8,8 +8,8 @@ https://github.com/bcarlborg/p2p-file-sharing-network.git
 
 Running the file sharing service:
 In order to run this code, one only needs to navigate to the src directory
-and run the command `python3 CLI.py`.
-This will start the command line interface for the software.
+and run the command `python3 CLI.py` where CLI.py is located in the src
+directory. This will start the command line interface for the software.
 
 The program will prompt for users to enter the path for the directory they
 wish to initialize their shared directory in.
