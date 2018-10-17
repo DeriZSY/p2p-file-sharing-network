@@ -2,6 +2,10 @@ Stream Connect File Sharing Network:
 A peer to peer file sharing network that implements a protocol similar to
 the bitTorrent network.
 
+Downloading:
+All of the code and history can be downloaded at the github link below:
+https://github.com/bcarlborg/p2p-file-sharing-network.git
+
 Running the file sharing service:
 In order to run this code, one only needs to navigate to the src directory
 and run the command `python3 CLI.py`.
