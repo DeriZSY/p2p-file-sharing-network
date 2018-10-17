@@ -25,7 +25,7 @@ class ListenThread(Thread):
             connection_socket, connection_addr = self.listening_socket.accept()
             self.audit.new_connection(connection_addr)
 
-            new_client_connection_thread = ClientConnectionThread(self.shared_dir_path, connection_socket)
+            new_client_connection_thread = ClientConnectionThread(self.parent_client ,self.shared_dir_path, connection_socket)
             new_client_connection_thread.start()
 
             self.parent_client.connections.append(new_client_connection_thread)

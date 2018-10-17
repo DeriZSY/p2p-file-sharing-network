@@ -1,10 +1,16 @@
+# TODO: add "simple" locking for printing files from list...
+# TODO: add hashing?
+
 from Protocol import Protocol
 from Client import Client
-
+from threading import Thread
 import pathlib
 import sys
 import os
 import re
+
+IO_LOCK = Thread()
+
 
 class CLI():
 # """
@@ -12,6 +18,7 @@ class CLI():
 # Currently implemented: Initialize, Start Network and Connect to Network
 # """
     def __init__(self):
+        IO_LOCK.acquire()
         print("------------------------------------------------")
         print("SourceConnect")
         print("A collaborative terminal based directory!")
@@ -20,8 +27,7 @@ class CLI():
         print("to begin, please specify the path of the")
         print("directory you would like to share (It is best")
         print("if this is an empty directory on your computer)")
-
-
+        IO_LOCK.release()
 
         self.shared_dir = self.get_usr_directory()
         self.listening_addr = self.get_usr_ip_and_port()
@@ -37,7 +43,7 @@ class CLI():
 
         while (not is_valid_path):
             print()
-            sys.stdout.write('directory path: ')
+            sys.stdout.write('shared directory path: ')
             sys.stdout.flush()
             usr_selection = input()
             usr_path = pathlib.Path(usr_selection)
@@ -45,28 +51,38 @@ class CLI():
 
             if (not usr_path.exists()):
                 print("<<ERROR: path does not exist>>")
+                print("<<please provide a valid input>>")
 
             elif (not usr_path.is_dir()):
                 print("<<ERROR: path is not a directory>>")
+                print("<<please provide a valid input>>")
 
             else:
                 is_valid_path = True
-                print()
+                print("initializing shared dir at: " + str(usr_path))
                 return usr_path
 
+
+
     def get_usr_ip_and_port(self):
-        print("please provide an addressthat others can use")
+        print("-----------------------------------------------")
+        print("please provide an address that others can use")
         print("to access your directory in the form ip:port")
         print()
 
-        return self.get_addr()
+        listening_addr = self.get_addr("listening address: ")
+        print("listening at: " + str(listening_addr))
+
+        return listening_addr
+
 
 
     def join_or_create_network(self):
-        print("would you like to join an existing network or would")
-        print("you like to create your own?")
-
-        print("1: create a netork || 2: join a network")
+        print("-----------------------------------------------")
+        print("would you like to join an existing network or")
+        print("create a new network?")
+        print("1: create a new network")
+        print("2: join a network")
 
         is_valid_input = False
         while (not is_valid_input):
@@ -74,33 +90,36 @@ class CLI():
             sys.stdout.write('(1 or 2): ')
             sys.stdout.flush()
             usr_input = input()
-            print()
-
 
             if (usr_input != "1" and usr_input != "2"):
                 print("<<ERROR: input out of range>>")
+                print("<<please provide a valid input>>")
 
             else:
                 if (usr_input == "1"):
-                    print("creating a new network...")
                     print()
+                    print("creating a new network...")
                     self.handle_start_network()
+                    print("network successfully created!")
+                    print("Others can now join using your listening address")
 
                 elif (usr_input == "2"):
+                    print()
                     print("please provide address of a node in the netowrk")
                     print("in the form ip:port")
                     print()
-                    new_node_addr = self.get_addr()
+                    new_node_addr = self.get_addr("address of other network node: ")
+                    print("attemping to join the network...")
                     self.handle_join_network(new_node_addr)
+                    print("successfully joined the network")
 
                 is_valid_input = True
 
 
-
-    def get_addr(self):
+    def get_addr(self, address_type_string):
         is_valid_addr = False
         while (not is_valid_addr):
-            sys.stdout.write('addr: ')
+            sys.stdout.write(address_type_string)
             sys.stdout.flush()
             usr_input = input()
             lo_port_re = r"lo:(\d+)"
@@ -118,6 +137,7 @@ class CLI():
 
             elif (not match):
                 print("<<ERROR: not a valid addr in form ip:port>>")
+                print("<<please provide a valid input>>")
 
             else:
                 listen_addr = (match.group(1), int(match.group(2)))
@@ -126,8 +146,9 @@ class CLI():
                 return listen_addr
 
     def list_or_req(self):
-        print()
-        print("1: list available files  || 2: request a file")
+        print("-----------------------------------------------")
+        print("1: list available files in the network")
+        print("2: request a file from the network")
 
         is_valid_input = False
         while (not is_valid_input):
@@ -140,28 +161,23 @@ class CLI():
 
             if (usr_input != "1" and usr_input != "2"):
                 print("<<ERROR: input out of range>>")
+                print("<<please provide a valid input>>")
+                print()
 
             else:
                 if (usr_input == "1"):
-                    print("connecting to nodes for file list...")
-                    print()
+                    print("connecting to nodes for file lists...")
                     self.client_obj.list_files()
 
                 elif (usr_input == "2"):
-                    print()
-                    print("please provide the name of a file to request")
-                    print()
-
-                    sys.stdout.write('filename: ')
+                    sys.stdout.write('name of file to request: ')
                     sys.stdout.flush()
-
                     req_file_name = input()
                     self.client_obj.request_file(req_file_name)
+                    print()
+                    print("successfully downloaded")
 
                 is_valid_input = True
-
-
-
 
 
     def init_dir(self):
@@ -198,6 +214,7 @@ class CLI():
 
         else:
             print("<<ERROR: invalid shared_dir provided>>")
+            print("<<please provide a valid input>>")
 
 
     def handle_start_network(self):

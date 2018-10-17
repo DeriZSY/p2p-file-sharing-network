@@ -13,7 +13,6 @@ class FileReader():
         file_size = os.path.getsize(self.filepath);
         return file_size
 
-
     def get_file_bytes(self):
     # """Returns a bytes array of the file that can be sent"""
         byteContent = b""

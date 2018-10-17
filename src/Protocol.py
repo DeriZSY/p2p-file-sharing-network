@@ -30,6 +30,23 @@ class Protocol():
     # -----------------------------------------------------------------------------------------------
 
     @classmethod
+    def rej_file_string(self):
+        return self.str_to_fixed_width_string("rejfile")
+
+    @classmethod
+    def rej_file_bytes(self, file_name):
+        if (file_name):
+            file_name_bytes = file_name.encode("UTF-8")
+            file_name_bytes_msg = self.int_to_fixed_width_bytes(len(file_name_bytes)) + file_name_bytes
+
+            return_bytes = file_name_bytes_msg + file_bytes_msg
+
+            return (self.rej_file_bytes() + return_bytes)
+
+        return self.str_to_fixed_width_string("rejfile").encode("UTF-8")
+
+
+    @classmethod
     def ack_file_string(self):
         return self.str_to_fixed_width_string("ackfile")
 
@@ -42,7 +59,10 @@ class Protocol():
             file_bytes = FileReader(file_path).get_file_bytes()
             file_bytes_msg = self.int_to_fixed_width_bytes(len(file_bytes)) + file_bytes
 
-            return_bytes = file_name_bytes_msg + file_bytes_msg
+            file_hash_bytes = FileReader(file_path).hash_file().encode("utf-8")
+            file_hash_msg = self.int_to_fixed_width_bytes(len(file_hash_bytes)) + file_hash_bytes
+
+            return_bytes = file_name_bytes_msg + file_bytes_msg + file_hash_msg
 
             return (self.ack_file_bytes() + return_bytes)
 

@@ -10,8 +10,9 @@ import re
 
 class ClientConnectionThread(Thread):
     # """Utilizes TCP to initialize a thread for every peer connection in the network"""
-    def __init__(self, shared_dir_path, client_connection):
+    def __init__(self, parent_client, shared_dir_path, client_connection):
         Thread.__init__(self)
+        self.parent_client = parent_client
         self.shared_dir_path = shared_dir_path
         self.address_file = self.shared_dir_path.joinpath(".addrs.config")
         self.client_connection = client_connection
@@ -47,6 +48,13 @@ class ClientConnectionThread(Thread):
             elif data_str == Protocol.ack_file_string():
                 self.handle_ack_file_request()
 
+            elif data_str == Protocol.rej_file_string():
+                pass
+
+
+
+
+
 
     def handle_join_network_request(self):
         addr_str = self.get_sized_payload().decode("utf-8")
@@ -73,8 +81,8 @@ class ClientConnectionThread(Thread):
                 self.add_to_addresses_file(addr)
                 # TODO: add code here that will make new connections with these folk
 
-        if self.shared_dir_path.joinpath("tmp").is_file():
-            self.shared_dir_path.joinpath("tmp").unlink()
+        if self.shared_dir_path.joinpath(".tmp").is_file():
+            self.shared_dir_path.joinpath(".tmp").unlink()
 
     def handle_list_request(self):
         file_list = DirectoryReader(self.shared_dir_path).list_file_names()
@@ -84,23 +92,34 @@ class ClientConnectionThread(Thread):
     def handle_ack_list_request(self):
         list_str = self.get_sized_payload().decode("UTF-8")
         file_name_list = list_str.split("\n")
+        print("files: " + str(file_name_list))
         self.audit.recieved_file_list(file_name_list)
 
     def handle_req_file_request(self):
         file_name_str = self.get_sized_payload().decode("UTF-8")
         file_path = self.shared_dir_path.joinpath(file_name_str)
-        self.client_connection.sendall(Protocol.ack_file_bytes(file_path))
+        if file_path.exists():
+            self.client_connection.sendall(Protocol.ack_file_bytes(file_path))
+        else:
+            self.client_connection.sendall(Protocol.rej_file_bytes(file_path.name))
+
 
     def handle_ack_file_request(self):
         name_str = self.get_sized_payload().decode("UTF-8")
         file_bytes = self.get_sized_payload()
+        file_hash = self.get_sized_payload().decode("UTF-8")
 
         self.audit.recieved_file(name_str)
 
-        with open(os.path.join(self.shared_dir_path.joinpath(name_str)), 'wb') as temp_file:
+        new_file_path = self.shared_dir_path.joinpath(name_str)
+        with open((new_file_path), 'wb') as temp_file:
             temp_file.write(file_bytes)
 
+        assert(FileReader(new_file_path).hash_file() == file_hash)
+
+
         self.audit.file_written(name_str)
+
 
 # ==================================================================================
 
